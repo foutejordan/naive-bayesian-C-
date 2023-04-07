@@ -80,63 +80,59 @@ double** Model::beta(vector<int>* seq_obs){
 
 vector<int>* Model::viterbi(vector<int>* seq_obs)
 {
-    // longueur de la sequence d'observation
+     // longueur de la sequence d'observation
     int T = seq_obs->size();
+    std::cout << T << std::endl;
 
-    // Matrice pour stocker les probabilites max
+    // Matrice delta pour stocker les probabilites max
     
-    vector<vector<double>> delta(T, vector<double>(n, 0));
-
-    // matrice pour stocker les etats precedents au fure et a mesure
+    vector<vector<double>> delta(T, vector<double>(n, 0.0));
+      // matrice pour stocker les etats precedents au fure et a mesure
     vector<vector<int>> phi(T, vector<int>(n, 0));
 
     // sequence d'etats caches plus probable
     vector<int>* q = new vector<int>(T, 0);
 
-    // initialisation
-    for (int i = 1; i <= n; i++) {
-        delta[1][i] = pi[i] * B[i][(*seq_obs)[1]];
-        phi[1][i] = 0;
+    // point 1, phase d'initialisation
+    for (int i = 0; i < n; i++) {
+        delta[0][i] = pi[i] + B[i][(*seq_obs)[0]];
+        phi[0][i] = 0;
     }
 
     // point 2 de l'algo
-
-    for (int t = 2; t<= T; t++) {
-        for(int j = 1; j<= n; j++) {
-            double max_delta = 0.0;
-            int max_i = 0;
-
-            for(int i = 1; i<= n; i++) {
-                double val = delta[t-1][i] * A[i][j] * B[j][(*seq_obs)[t]];
-                if (val > max_delta){
+    for (int t = 1; t < T; t++) {
+        for (int j = 0; j < n; j++) {
+            double max_delta = -std::numeric_limits<float>::infinity();
+            int max_phi = 0;
+            for (int i = 0; i < n; i++ ) {
+                double val = delta[t-1][i] + A[i][j] + B[j][(*seq_obs)[t]];
+                if(val > max_delta) {
                     max_delta = val;
-                    max_i = i;
+                    max_phi = i;
                 }
             }
-
             delta[t][j] = max_delta;
-            phi[t][j] = max_i;
+            phi[t][j] = max_phi;
         }
     }
 
     // point 3 et 4  de l'algo
-    double max_proba = 0.0;
-    int max_i = 0;
-    for (int i = 1; i <= n; i++) {
-        if (delta[T][i] > max_proba) {
-            max_proba = delta[T][i];
-            max_i = i;
+    double max_proba = -std::numeric_limits<float>::infinity();
+    int max_q = 0;
+    for (int i = 0; i < n; i++) {
+        if (delta[T-1][i] > max_proba) {
+            max_proba = delta[T-1][i];
+            max_q = i;
         }
     }
 
-    // point 5 de l'algo
-    (*q)[T] = max_i;
-    for (int t = T - 1; t >= 1; t--) {
+    (*q)[T-1] = max_q;
+
+    for (int t = T-2; t >= 0; t--) {
         (*q)[t] = phi[t+1][(*q)[t+1]];
     }
 
-
-    return q;
+    return q; 
 
 }
 

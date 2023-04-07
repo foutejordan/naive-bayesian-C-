@@ -32,7 +32,7 @@ namespace hmm {
                 for(int i = 0; i < n; ++i)
                     B[i] = new double[M];
 
-                pi = new double[n];
+                pi = new double[n];                         
 
                 dic_state = new map<string, int>();
                 dic_obs = new map<string, int>();
