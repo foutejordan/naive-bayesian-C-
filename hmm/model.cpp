@@ -346,12 +346,13 @@ void Model::train_MLE(vector<vector<int>*>* data_obs, vector<vector<int>*>* data
 {
     /* --------------- Learn pi -------------- */
     // count starting states
-    int count_start_state[n];
-
-    count_start_state[n] = {0};
+    int count_start_state[n]={0};
+   
+    
     for (int i = 0; i < data_state->size(); i++) {
         count_start_state[(*data_state)[i]->at(0)]++;
     }
+
 
     /* --------------- Learn A -------------- */
     // count bigrams s_{i}s_{j} and unigrams s_{i}
@@ -362,7 +363,7 @@ void Model::train_MLE(vector<vector<int>*>* data_obs, vector<vector<int>*>* data
 
         for (int j = 0; j < (*data_state)[i]->size() - 1; j++) {
             count_bigram_state[(*data_state)[i]->at(j)][(*data_state)[i]->at(j+1)] ++;
-            count_unigram_state[(*data_state)[i]->at(j)] ++;
+            count_unigram_state[(*data_state)[i]->at(j)]++;
         }
         count_unigram_state[(*data_state)[i]->at((*data_state)[i]->size() - 1)]++;  // Compter le dernier état
     }
@@ -384,27 +385,27 @@ void Model::train_MLE(vector<vector<int>*>* data_obs, vector<vector<int>*>* data
     for ( int i = 0; i < n; i++) {
 
         // mise a jour des probas de transitions A
-
+ init_param_EOS();
         for (int j = 0; j < n; j++) {
             if(count_unigram_state[i] > 0) {
-                A[i][j] = (double)count_bigram_state[i][j] / count_unigram_state[i];
+                A[i][j] = log((double)count_bigram_state[i][j] / count_unigram_state[i]);
             }
         }
 
         // Mise a jour des probas de B
         for (int k = 0; k < M; k++) {
             if (count_unigram_state[i] > 0) {
-                B[i][k] = (double)count_state_obs[i][k] / count_unigram_state[i];
+                B[i][k] = log((double)count_state_obs[i][k] / count_unigram_state[i]);
             }
         }
          // Mise a jour des probas de Pi
         if (data_state->size() > 0) {
-            pi[i] = (double)count_start_state[i] / data_state->size();
+            pi[i] = log((double)count_start_state[i] / data_state->size());
         }
     }
 
 
-    init_param_EOS();
+     init_param_EOS();
     save_hmm(filename);
 }
 
