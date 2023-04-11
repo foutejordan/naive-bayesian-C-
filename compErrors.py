@@ -6,7 +6,7 @@ from optparse import OptionParser
 import os
 import re
 import sys
-import codecs
+import codecs   
 
 
 def compErrors(refFile, hypFile):
