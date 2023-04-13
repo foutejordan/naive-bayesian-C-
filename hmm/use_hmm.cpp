@@ -29,7 +29,7 @@ queue<string>* Parser::read_test_data(string filenameIn, Model* m)
 {
     queue<string>* res = Parser::read_sequences(filenameIn, m, false);
     state_sequences = m->predict(obs_sequences);
-    return res;
+    return res; 
 }
 
 Model* Parser::read_vocab(string filename, bool optEOS)
