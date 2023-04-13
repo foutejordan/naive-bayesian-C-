@@ -342,28 +342,49 @@ void Model::train_baum_welch(vector<vector<int>*>* data, string filename)
     save_hmm(filename);
 }
 
+
 void Model::train_MLE(vector<vector<int>*>* data_obs, vector<vector<int>*>* data_state, string filename)
 {
+    
+    
+    // Initialisation
+
+    
     /* --------------- Learn pi -------------- */
     // count starting states
-    int count_start_state[n]={0};
-   
-    
+    int count_start_state[n];
+     for (int i = 0; i < n; i++) {
+        count_start_state[i] = 0;
+    }
+
     for (int i = 0; i < data_state->size(); i++) {
         count_start_state[(*data_state)[i]->at(0)]++;
     }
 
-
     /* --------------- Learn A -------------- */
-    // count bigrams s_{i}s_{j} and unigrams s_{i}
-    int count_bigram_state[n][n]={0};
-    int count_unigram_state[n]={0};
+    
+    int count_bigram_state[n][n];
+    int count_unigram_state[n];
+    for (int i = 0; i < n; i++) {
+        count_unigram_state[i] = 0;
+        for (int j = 0; j < n; j++) {
+            count_bigram_state[i][j] = 0;
+        }
+    }
 
+    int count_state_obs[n][M];
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < M; j++) {
+            count_state_obs[i][j] = 0;
+        }
+    }
+
+  // count bigrams s_{i}s_{j} and unigrams s_{i}
     for (int i = 0; i < data_state->size(); i++) {
 
         for (int j = 0; j < (*data_state)[i]->size() - 1; j++) {
             count_bigram_state[(*data_state)[i]->at(j)][(*data_state)[i]->at(j+1)] ++;
-            count_unigram_state[(*data_state)[i]->at(j)]++;
+            count_unigram_state[(*data_state)[i]->at(j)] ++;
         }
         count_unigram_state[(*data_state)[i]->at((*data_state)[i]->size() - 1)]++;  // Compter le dernier état
     }
@@ -371,7 +392,7 @@ void Model::train_MLE(vector<vector<int>*>* data_obs, vector<vector<int>*>* data
 
     /* --------------- Learn B -------------- */
     // count pairs s_{i}o_{j}
-    int count_state_obs[n][M]={0};
+    
 
     for (int i = 0; i < data_state->size(); i++) {
 
@@ -385,7 +406,7 @@ void Model::train_MLE(vector<vector<int>*>* data_obs, vector<vector<int>*>* data
     for ( int i = 0; i < n; i++) {
 
         // mise a jour des probas de transitions A
- init_param_EOS();
+
         for (int j = 0; j < n; j++) {
             if(count_unigram_state[i] > 0) {
                 A[i][j] = log((double)count_bigram_state[i][j] / count_unigram_state[i]);
@@ -405,9 +426,10 @@ void Model::train_MLE(vector<vector<int>*>* data_obs, vector<vector<int>*>* data
     }
 
 
-     init_param_EOS();
+    init_param_EOS();
     save_hmm(filename);
 }
+
 
 
 Model* Model::load_hmm(string filename) 
