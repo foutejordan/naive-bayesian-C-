@@ -70,19 +70,69 @@ double Model::ln_of_sum(double ln_val1, double ln_val2) {
 }
 
 double** Model::alpha(vector<int>* seq_obs){
+    // initialization
+    int T = seq_obs->size();
+    double** alpha = new double*[T];
+
+    for (int t = 0; t < T; t++) {
+            alpha[t] = new double[n];
+        }
+
+    for(int i=0; i<n; i++){
+        alpha[0][i] = pi[i] + B[i][(*seq_obs)[0]];
+    }
     
+    for(int t = 0; t < T-1; t++) {
+
+        for (int j = 0; j < n; j++) {
+            double sum = 0.0;
+            
+            for (int i = 0; i < n; i++) {
+                sum = ln_of_sum(sum, alpha[t][i] + A[i][j]);
+            }
+            
+            alpha[t+1][j] = sum + B[j][(*seq_obs)[t+1]];
+            
+        }
+        
+    }
+
+    return alpha;
     
 }
 
 double** Model::beta(vector<int>* seq_obs){
-    
+    // initialization
+    int T = seq_obs->size();
+    double** beta = new double*[T];
+
+    for(int t=0; t<T; t++){
+        beta[t] = new double[n];
+    }
+
+    for(int i=0; i< n; i++){
+        beta[T-1][i] = 1;
+    }
+
+    for (int t = T-2; t >= 0; t--) {
+        for (int i = 0; i < n; i++) {
+            double sum = 0.0;
+
+            for (int j = 0; j < n; j++) {
+                sum = ln_of_sum(sum, A[i][j] + B[j][(*seq_obs)[t+1]] + beta[t+1][j]);
+            }
+            beta[t][i] = sum;
+        }
+    }
+
+    return beta;
 }
 
 vector<int>* Model::viterbi(vector<int>* seq_obs)
 {
      // longueur de la sequence d'observation
     int T = seq_obs->size();
-    std::cout << T << std::endl;
+    
 
     // Matrice delta pour stocker les probabilites max
     
@@ -138,7 +188,31 @@ vector<int>* Model::viterbi(vector<int>* seq_obs)
 
 vector<double>* Model::posterior(vector<int>* seq_obs, vector<int>* seq_state) 
 {
+    int T = seq_obs->size();
+
+    double** alpha = Model::alpha(seq_obs);
+
+    double** beta = Model::beta(seq_obs);
+
+    vector<double>* posterior_probs = new vector<double>();
+
+    double log_pgen = Model::pgen(seq_obs, alpha);
+
+
+    for (int t = 0; t < T; t++) {
+            int s = (*seq_state)[t];
+            double val = (alpha[t][s] + beta[t][s]) - log_pgen;
+            posterior_probs->push_back(val);
+    }
+    for (int t = 0; t < T; t++) {
+        delete[] alpha[t];
+        delete[] beta[t];
+    }
+    delete[] alpha;
+    delete[] beta;
     
+    return posterior_probs;
+
 }
 
 vector<vector<int>*>* Model::predict(vector<vector<int>*>* data_obs) 
@@ -151,7 +225,19 @@ vector<vector<int>*>* Model::predict(vector<vector<int>*>* data_obs)
 
 double Model::pgen(vector<int>* seq_obs, double** alpha) 
 {
+    int T = seq_obs->size();
+    double log_prob = 0.0;
+    // alpha = new double*[T];
+
+    for(int t=0; t<T; t++){
+        alpha[t] = new double[n];
+    }
+     
+    for(int i=0; i< n; i++) {
+        log_prob = ln_of_sum(log_prob, alpha[T-1][i]);
+    }
     
+    return log_prob;
 }
 
 double*** Model::xi(vector<int>* seq_obs, double* likelihood) 

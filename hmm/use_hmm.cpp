@@ -212,8 +212,8 @@ void Parser::write_predict(string filename, Model* model, queue<string>* unk_obs
                 
             vector<int>* obs_seq1 = (*obs_sequences)[k];
             vector<int>* state_seq1 = (*state_sequences)[k];
+            
             vector<double>* posteriors = model->posterior(obs_seq1, state_seq1);
-
             bool hasUNK =  model->dic_obs->count(UNK) > 0;
             bool hasEOS =  model->dic_obs->count(EOS) > 0;
             // Assertion: obs_seq1, state_seq_1 and posteriors have the same size
@@ -234,8 +234,8 @@ void Parser::write_predict(string filename, Model* model, queue<string>* unk_obs
                     {
                         filout << model->tab_obs[(*obs_seq1)[i]];
                     }
-                    // filout << "\t" << model->tab_state[(*state_seq1)[i]] << "\t" << exp((*posteriors)[i]) << endl;
-                    filout << "\t" << model->tab_state[(*state_seq1)[i]] << endl;
+                    filout << "\t" << model->tab_state[(*state_seq1)[i]] << "\t" << exp((*posteriors)[i]) << endl;
+                    // filout << "\t" << model->tab_state[(*state_seq1)[i]] << endl;
                 }
             }
             filout << endl;
